@@ -41,6 +41,8 @@ public class ViewWeatherActivity extends Activity {
 	
 	private static final int MESSAGE_UPDATE_UI = 1;
 	
+	private static final int MESSAGE_CONNECT_EXCEPTION = 2;
+	
 	private WeatherDayInfoManager weatherDayInfoManager;
 	
 	private Button manageLocationButton;
@@ -51,6 +53,8 @@ public class ViewWeatherActivity extends Activity {
 	
 	private TextView todayRealTimeTemperatureView,todayTemperatureView
 					,todayWeatherInfoView,todayWeatherDateView,todayWeekView;
+	
+	private TextView weatherDayInfoUpdateTimeView,currentDateView;
 	
 	private GridView weatherDayInfoGridView;
 	
@@ -72,6 +76,12 @@ public class ViewWeatherActivity extends Activity {
 			switch(msg.what){
 			case MESSAGE_UPDATE_UI:
 				loadWeatherData();
+				break;
+			
+			case MESSAGE_CONNECT_EXCEPTION:
+				Toast.makeText(ViewWeatherActivity.this
+						, "更新天气数据失败，检查是否开启手机网络"
+						, Toast.LENGTH_LONG).show();
 				break;
 			default:
 				break;
@@ -104,6 +114,11 @@ public class ViewWeatherActivity extends Activity {
 		todayWeekView = 
 				(TextView) findViewById(R.id.today_week_view);
 		
+		weatherDayInfoUpdateTimeView = 
+				(TextView) findViewById(R.id.weather_day_info_update_time_view);
+		currentDateView = 
+				(TextView) findViewById(R.id.current_date_view);
+		
 		weatherDayInfoGridView = 
 				(GridView) findViewById(R.id.weather_day_info_grid_view);
 
@@ -120,6 +135,16 @@ public class ViewWeatherActivity extends Activity {
 			}
 		});
 		
+		refreshDataButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+
+				checkIsDefaultCountyIdSet();
+				downloadCountyWeatherInfo();
+			}
+		});
+		
 		weatherDayInfoAdapter = 
 				new WeatherDayInfoAdapter(this, R.layout.weather_day_info_item_layout
 						, weatherDayInfoList);
@@ -130,22 +155,12 @@ public class ViewWeatherActivity extends Activity {
 	
 	@Override
 	protected void onStart() {
+		
 		super.onStart();
-
-		isDefaultCountyIdSet = 
-				pref.contains(Constant.CONFIG_ITEM_DEFAULT_COUNTY_ID);
-		if(isDefaultCountyIdSet){
-
-			int defaultCountyId = 
-				pref.getInt(Constant.CONFIG_ITEM_DEFAULT_COUNTY_ID, -1);
-			defaultCounty = 
-					CoolWeatherDB.getInstance(this).loadCountyById(defaultCountyId);
-			
-			downloadCountyWeatherInfo();
-		}else{
-			Toast.makeText(this, "未设置城市，请进入-城市管理 里进行设置", Toast.LENGTH_LONG)
-				.show();
-		}
+		checkIsDefaultCountyIdSet();
+		loadWeatherData();
+		
+		downloadCountyWeatherInfo();
 	}
 	
 	private void loadWeatherData(){
@@ -153,16 +168,18 @@ public class ViewWeatherActivity extends Activity {
 		List<WeatherDayInfo> tempWeatherDayInfoList = 
 				weatherDayInfoManager.getWeatherDayInfoListByCountyId(this
 						,defaultCounty.getCountyId());
-		if(tempWeatherDayInfoList.size() == 0){
-			Toast.makeText(this, "数据库中没有天气数据，检查是否开启手机网络"
-					, Toast.LENGTH_LONG).show();
-			return;
-		}
 		
 		weatherDayInfoList.clear();
+		
+		Date currentTime = new Date(System.currentTimeMillis());
+		String todayString = DateUtil.dateFormat.format(currentTime);
+		
 		for(int i=0;i<tempWeatherDayInfoList.size();i++){
 			WeatherDayInfo tempWeatherDayInfo = tempWeatherDayInfoList.get(i);
-			weatherDayInfoList.add(tempWeatherDayInfo);
+			String tempWeatherDateString = tempWeatherDayInfo.getWeatherDateString();
+			if(tempWeatherDateString.compareTo(todayString)>=0){
+				weatherDayInfoList.add(tempWeatherDayInfo);
+			}
 		}
 		updateUI();
 	}
@@ -170,31 +187,61 @@ public class ViewWeatherActivity extends Activity {
 	private void updateUI() {
 
 		locationNameView.setText(defaultCounty.getCountyName());
-		
-		WeatherDayInfo todayWeatherDayInfo = weatherDayInfoList.get(0);
-		todayRealTimeTemperatureView.setText(todayWeatherDayInfo.getRealTimeTemperature());
-		todayTemperatureView.setText(todayWeatherDayInfo.getTemperature());
-		todayWeatherInfoView.setText(todayWeatherDayInfo.getWeatherInfo());
-
-		Date weatherDate = null;
-		try {
-			weatherDate = DateUtil.dateFormat.parse(todayWeatherDayInfo.getWeatherDateString());
-		} catch (ParseException e) {
-			e.printStackTrace();
+			
+		//如果有可以显示的天气数据，就进行显示
+		if(weatherDayInfoList.size()>0){
+			WeatherDayInfo todayWeatherDayInfo = weatherDayInfoList.get(0);
+			todayRealTimeTemperatureView.setText(todayWeatherDayInfo.getRealTimeTemperature());
+			todayTemperatureView.setText(todayWeatherDayInfo.getTemperature());
+			todayWeatherInfoView.setText(todayWeatherDayInfo.getWeatherInfo());
+	
+			Date weatherDate = null;
+			try {
+				weatherDate = DateUtil.dateFormat.parse(todayWeatherDayInfo.getWeatherDateString());
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			String formatWeatherDateString = DateUtil.shortDateFormat.format(weatherDate);
+			
+			todayWeatherDateView.setText(formatWeatherDateString);
+			todayWeekView.setText(todayWeatherDayInfo.getWeek());
+			
+			weatherDayInfoUpdateTimeView.setText(todayWeatherDayInfo.getUpdateTimeString());
 		}
-		String formatWeatherDateString = DateUtil.weatherDateFormat.format(weatherDate);
 		
-		todayWeatherDateView.setText(formatWeatherDateString);
-		todayWeekView.setText(todayWeatherDayInfo.getWeek());
+		Date currentTime = new Date(System.currentTimeMillis());
+		String todayString = DateUtil.fullDateFormat.format(currentTime);
+		currentDateView.setText(todayString);
 		
 		weatherDayInfoAdapter.notifyDataSetChanged();
 		weatherDayInfoGridView.setSelection(0);
 		
 	}
+	
+	private void checkIsDefaultCountyIdSet(){
+
+		isDefaultCountyIdSet = 
+				pref.contains(Constant.CONFIG_ITEM_DEFAULT_COUNTY_ID);
+		if(!isDefaultCountyIdSet){
+			Toast.makeText(this, "未设置城市，请进入-城市管理 里进行设置", Toast.LENGTH_LONG)
+				.show();
+			return;
+		}else{
+
+			int defaultCountyId = 
+				pref.getInt(Constant.CONFIG_ITEM_DEFAULT_COUNTY_ID, -1);
+			defaultCounty = 
+					CoolWeatherDB.getInstance(this).loadCountyById(defaultCountyId);
+		}
+	}
 
 
 	private void downloadCountyWeatherInfo() {
 
+		if(!isDefaultCountyIdSet){
+			return;
+		}
+				
 		StringBuffer sb = new StringBuffer();
 		sb.append(WeatherService.URL_BAIDU_WEATHER_API);
 		sb.append('?');
@@ -210,7 +257,7 @@ public class ViewWeatherActivity extends Activity {
 			
 			@Override
 			public void onFinish(String response) {
-				Log.i(TAG, "onFinished");
+				Log.i(TAG, "onFinish");
 				weatherDayInfoManager.parseWeatherInfoResponse(ViewWeatherActivity.this
 						,defaultCounty,response);
 				
@@ -221,7 +268,12 @@ public class ViewWeatherActivity extends Activity {
 			
 			@Override
 			public void onError(Exception ex) {
-				
+				Log.i(TAG, "onError");
+
+				Message message = new Message();
+				message.what = MESSAGE_CONNECT_EXCEPTION;
+				handler.sendMessage(message);
+				return;
 			}
 		});
 	}

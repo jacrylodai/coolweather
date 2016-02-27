@@ -106,8 +106,36 @@
             <TextView 
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:textSize="11sp"
+	            android:textSize="12sp"
 	            android:text="数据来源：百度网"
+	            />
+            
+            <TextView 
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textSize="12sp"
+	            android:text="更新时间："
+	            />
+            
+            <TextView 
+                android:id="@+id/weather_day_info_update_time_view"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textSize="12sp"
+	            />
+            
+            <TextView 
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textSize="14sp"
+	            android:text="今天是："
+	            />
+            
+            <TextView 
+                android:id="@+id/current_date_view"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textSize="14sp"
 	            />
             
         </LinearLayout>

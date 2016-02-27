@@ -57,7 +57,7 @@ public class WeatherDayInfoAdapter extends ArrayAdapter<WeatherDayInfo> {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		String formatWeatherDateString = DateUtil.weatherDateFormat.format(weatherDate);
+		String formatWeatherDateString = DateUtil.shortDateFormat.format(weatherDate);
 		
 		viewHolder.weatherDateView.setText(formatWeatherDateString);
 		

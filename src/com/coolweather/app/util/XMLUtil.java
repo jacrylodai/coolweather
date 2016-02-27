@@ -1,10 +1,13 @@
 package com.coolweather.app.util;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
+
+import android.os.SystemClock;
 
 import com.coolweather.app.model.County;
 import com.coolweather.app.model.WeatherDayInfo;
@@ -38,6 +41,9 @@ public class XMLUtil {
 		
 		Element dateFirstElt = (Element) document.selectObject("/CityWeatherResponse/date");
 		String dateFirst = dateFirstElt.getStringValue();
+		
+		Date updateTime = new Date(System.currentTimeMillis());
+		String updateTimeString = DateUtil.timeFormat.format(updateTime);
 		
 		List<Element> dateEltList = 
 				(List<Element>) document.selectObject(ITEM_DATE_PATH);
@@ -75,7 +81,7 @@ public class XMLUtil {
 			String formatTemperature = tempTemperature.replace(" ~ ", "/");
 			weatherDayInfo.setTemperature(formatTemperature);
 			
-			weatherDayInfo.setUpdateTimeString(dateFirst);
+			weatherDayInfo.setUpdateTimeString(updateTimeString);
 			if(0 == i){
 				String infoString = dateElt.getStringValue();
 				String[] infoPartArray = infoString.split("\\s");

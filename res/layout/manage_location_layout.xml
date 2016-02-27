@@ -52,6 +52,20 @@
             >
             
         </ListView>
+                
+    </LinearLayout>
+    
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+        
+        <Button 
+            android:id="@+id/set_default_county_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="设为默认城市"
+            />
         
     </LinearLayout>
 

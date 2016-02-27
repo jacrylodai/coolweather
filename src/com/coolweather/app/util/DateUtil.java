@@ -10,8 +10,11 @@ public class DateUtil {
 	public static final SimpleDateFormat dateFormat = 
 			new SimpleDateFormat("yyyy-MM-dd");
 
-	public static final SimpleDateFormat weatherDateFormat = 
+	public static final SimpleDateFormat shortDateFormat = 
 			new SimpleDateFormat("MM月dd日");
+	
+	public static final SimpleDateFormat fullDateFormat = 
+			new SimpleDateFormat("yyyy年MM月dd日");
 	
 	public static final SimpleDateFormat timeFormat = 
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
