@@ -141,7 +141,9 @@ public class ViewWeatherActivity extends Activity {
 			public void onClick(View v) {
 
 				checkIsDefaultCountyIdSet();
-				downloadCountyWeatherInfo();
+				if(isDefaultCountyIdSet){
+					downloadCountyWeatherInfo();
+				}
 			}
 		});
 		
@@ -158,9 +160,10 @@ public class ViewWeatherActivity extends Activity {
 		
 		super.onStart();
 		checkIsDefaultCountyIdSet();
-		loadWeatherData();
-		
-		downloadCountyWeatherInfo();
+		if(isDefaultCountyIdSet){
+			loadWeatherData();			
+			downloadCountyWeatherInfo();
+		}
 	}
 	
 	private void loadWeatherData(){
