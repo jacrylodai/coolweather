@@ -70,7 +70,10 @@ public class XMLUtil {
 			weatherDayInfo.setNightPictureUrl(nightPicUrlElt.getStringValue());
 			weatherDayInfo.setWeatherInfo(weatherInfoElt.getStringValue());
 			weatherDayInfo.setWind(windElt.getStringValue());
-			weatherDayInfo.setTemperature(temperatureElt.getStringValue());
+			
+			String tempTemperature = temperatureElt.getStringValue();
+			String formatTemperature = tempTemperature.replace(" ~ ", "/");
+			weatherDayInfo.setTemperature(formatTemperature);
 			
 			weatherDayInfo.setUpdateTimeString(dateFirst);
 			if(0 == i){

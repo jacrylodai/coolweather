@@ -34,7 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:text="管理城市"
+            android:text="城市管理"
             />
         
     </LinearLayout>
@@ -43,40 +43,97 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#27A5F9"
+        android:background="#DDDDDD"
         >
         
         <LinearLayout 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:paddingTop="5dp"
+            android:paddingLeft="15dp"
             android:orientation="vertical"
             >
             
             <TextView 
-	            android:id="@+id/current_date_view"
+	            android:id="@+id/today_real_time_temperature_view"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:layout_gravity="center_horizontal"
-	            android:textSize="24sp"
+	            android:textSize="60sp"
 	            />
             
             <TextView 
-	            android:id="@+id/weather_desc_view"
+	            android:id="@+id/today_temperature_view"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:layout_gravity="center_horizontal"
-	            android:textSize="40sp"
+	            android:textSize="18sp"
 	            />
             
             <TextView 
-	            android:id="@+id/temp_view"
+	            android:id="@+id/today_weather_info_view"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:layout_gravity="center_horizontal"
-	            android:textSize="40sp"
+	            android:textSize="16sp"
 	            />
+            
+            <TextView 
+	            android:id="@+id/today_weather_date_view"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textSize="16sp"
+	            />
+            
+            <TextView 
+	            android:id="@+id/today_week_view"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textSize="16sp"
+	            />
+            
+        </LinearLayout>        
+                
+        <LinearLayout 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:paddingTop="15dp"
+            android:paddingRight="10dp"
+            android:orientation="vertical"
+            >
+            
+            <TextView 
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textSize="11sp"
+	            android:text="数据来源：百度网"
+	            />
+            
         </LinearLayout>
+        
+        
+        <LinearLayout 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+		    android:layout_alignParentBottom="true"
+		    android:layout_alignParentLeft="true"  	
+		    android:paddingBottom="20dp"
+            android:orientation="vertical"
+            >
+	    
+		    <GridView
+			    android:id="@+id/weather_day_info_grid_view"  
+			    android:layout_width="match_parent"   
+			    android:layout_height="match_parent"
+			    android:numColumns="auto_fit"  
+			    android:verticalSpacing="10dp"  
+			    android:horizontalSpacing="10dp"  
+			    android:columnWidth="60dp"  
+			    android:stretchMode="columnWidth" 
+			/>
+		    
+		</LinearLayout>
         
     </RelativeLayout>
 

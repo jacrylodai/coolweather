@@ -9,6 +9,9 @@ public class DateUtil {
 
 	public static final SimpleDateFormat dateFormat = 
 			new SimpleDateFormat("yyyy-MM-dd");
+
+	public static final SimpleDateFormat weatherDateFormat = 
+			new SimpleDateFormat("MM‘¬dd»’");
 	
 	public static final SimpleDateFormat timeFormat = 
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

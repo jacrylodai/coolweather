@@ -38,7 +38,7 @@ public class CoolWeatherOpenHelper extends SQLiteOpenHelper {
 			   "weather_info         text, "+
 			   "wind                 text, "+
 			   "temperature          text, "+
-			   "realtime_temperature text, "+
+			   "real_time_temperature text, "+
 			   "update_time          text"+
 			")";
 			

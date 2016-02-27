@@ -90,4 +90,18 @@ public class WeatherDayInfoManagerImpl implements WeatherDayInfoManager{
 		db.close();
 	}
 
+	@Override
+	public List<WeatherDayInfo> getWeatherDayInfoListByCountyId(
+			Context context, Integer countyId) {
+
+		SQLiteDatabase db = 
+				CoolWeatherDB.getInstance(context).getDbHelper().getReadableDatabase();
+		
+		List<WeatherDayInfo> weatherDayInfoList = 
+				weatherDayInfoDao.getWeatherDayInfoListByCountyId(db,countyId);
+		
+		db.close();
+		return weatherDayInfoList;
+	}
+
 }

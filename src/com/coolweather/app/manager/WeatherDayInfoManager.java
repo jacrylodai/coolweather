@@ -16,5 +16,8 @@ public interface WeatherDayInfoManager {
 			Context context, County defaultCounty,String response);
 	
 	public void deleteWeatherDayInfoByCountyId(Context context, Integer countyId);
+
+	public List<WeatherDayInfo> getWeatherDayInfoListByCountyId(
+			Context context, Integer countyId);
 	
 }

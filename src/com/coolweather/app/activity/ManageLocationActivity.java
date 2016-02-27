@@ -16,6 +16,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -57,6 +58,7 @@ public class ManageLocationActivity extends Activity {
 				, android.R.layout.simple_list_item_single_choice
 				, countyNameList);
 		locationListView.setAdapter(listViewAdapter);
+		locationListView.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
 				
 		addLocationButton.setOnClickListener(new View.OnClickListener() {
 			
