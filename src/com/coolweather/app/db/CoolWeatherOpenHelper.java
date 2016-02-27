@@ -27,12 +27,25 @@ public class CoolWeatherOpenHelper extends SQLiteOpenHelper {
 			"county_code text,"+
 			"city_id integer)";
 	
-	private Context mContext;
+	private static final String CREATE_WEATHER_DAY_INFO = 
+			"create table t_weather_day_info( "+
+			   "weather_day_info_id  integer primary key autoincrement, "+
+			   "county_id            integer, "+
+			   "week                 text, "+
+			   "weather_date         text, "+
+			   "day_picture_url      text, "+
+			   "night_picture_url    text, "+
+			   "weather_info         text, "+
+			   "wind                 text, "+
+			   "temperature          text, "+
+			   "realtime_temperature text, "+
+			   "update_time          text"+
+			")";
+			
 
 	public CoolWeatherOpenHelper(Context context, String name,
 			CursorFactory factory, int version) {
 		super(context, name, factory, version);
-		mContext = context;
 	}
 
 	@Override
@@ -41,6 +54,7 @@ public class CoolWeatherOpenHelper extends SQLiteOpenHelper {
 		db.execSQL(CREATE_PROVINCE);
 		db.execSQL(CREATE_CITY);
 		db.execSQL(CREATE_COUNTY);
+		db.execSQL(CREATE_WEATHER_DAY_INFO);
 	}
 
 	@Override
