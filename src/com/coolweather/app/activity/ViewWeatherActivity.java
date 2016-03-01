@@ -15,6 +15,7 @@ import com.coolweather.app.manager.WeatherDayInfoManagerImpl;
 import com.coolweather.app.manager.WeatherService;
 import com.coolweather.app.model.County;
 import com.coolweather.app.model.WeatherDayInfo;
+import com.coolweather.app.service.WeatherAutoUpdateService;
 import com.coolweather.app.util.Constant;
 import com.coolweather.app.util.DateUtil;
 import com.coolweather.app.util.HttpCallbackListener;
@@ -43,6 +44,8 @@ public class ViewWeatherActivity extends Activity {
 	
 	private static final int MESSAGE_CONNECT_EXCEPTION = 2;
 	
+	private static final int REQUEST_MANAGE_LOCATION = 11;
+	
 	private WeatherDayInfoManager weatherDayInfoManager;
 	
 	private Button manageLocationButton;
@@ -67,6 +70,8 @@ public class ViewWeatherActivity extends Activity {
 	private boolean isDefaultCountyIdSet;
 	
 	private County defaultCounty;
+	
+	private List<Integer> countyIdList;
 	
 	private Handler handler = new Handler(){
 
@@ -131,7 +136,7 @@ public class ViewWeatherActivity extends Activity {
 			public void onClick(View v) {
 				Intent intent = new Intent(ViewWeatherActivity.this
 						, ManageLocationActivity.class);
-				startActivity(intent);
+				startActivityForResult(intent, REQUEST_MANAGE_LOCATION);
 			}
 		});
 		
@@ -151,7 +156,15 @@ public class ViewWeatherActivity extends Activity {
 				new WeatherDayInfoAdapter(this, R.layout.weather_day_info_item_layout
 						, weatherDayInfoList);
 		weatherDayInfoGridView.setAdapter(weatherDayInfoAdapter);
-
+		
+		checkIsDefaultCountyIdSet();
+		loadWeatherData();			
+		if(isDefaultCountyIdSet){
+			downloadCountyWeatherInfo();
+		}
+		
+		Intent serviceIntent = new Intent(ViewWeatherActivity.this, WeatherAutoUpdateService.class);
+		startService(serviceIntent);
 	}
 	
 	
@@ -159,58 +172,102 @@ public class ViewWeatherActivity extends Activity {
 	protected void onStart() {
 		
 		super.onStart();
-		checkIsDefaultCountyIdSet();
-		if(isDefaultCountyIdSet){
-			loadWeatherData();			
-			downloadCountyWeatherInfo();
+		
+	}
+		
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+		switch (requestCode) {
+		case REQUEST_MANAGE_LOCATION:
+			if(resultCode == Activity.RESULT_OK){
+				checkIsDefaultCountyIdSet();
+				loadWeatherData();			
+				if(isDefaultCountyIdSet){	
+					downloadCountyWeatherInfo();
+				}
+			}
+			break;
+
+		default:
+			break;
 		}
 	}
-	
+
+
 	private void loadWeatherData(){
-		
-		List<WeatherDayInfo> tempWeatherDayInfoList = 
-				weatherDayInfoManager.getWeatherDayInfoListByCountyId(this
-						,defaultCounty.getCountyId());
-		
+
 		weatherDayInfoList.clear();
-		
-		Date currentTime = new Date(System.currentTimeMillis());
-		String todayString = DateUtil.dateFormat.format(currentTime);
-		
-		for(int i=0;i<tempWeatherDayInfoList.size();i++){
-			WeatherDayInfo tempWeatherDayInfo = tempWeatherDayInfoList.get(i);
-			String tempWeatherDateString = tempWeatherDayInfo.getWeatherDateString();
-			if(tempWeatherDateString.compareTo(todayString)>=0){
-				weatherDayInfoList.add(tempWeatherDayInfo);
+		if(isDefaultCountyIdSet){
+			
+			List<WeatherDayInfo> tempWeatherDayInfoList = 
+					weatherDayInfoManager.getWeatherDayInfoListByCountyId(this
+							,defaultCounty.getCountyId());
+			
+			
+			Date currentTime = new Date(System.currentTimeMillis());
+			String todayString = DateUtil.dateFormat.format(currentTime);
+			
+			for(int i=0;i<tempWeatherDayInfoList.size();i++){
+				WeatherDayInfo tempWeatherDayInfo = tempWeatherDayInfoList.get(i);
+				String tempWeatherDateString = tempWeatherDayInfo.getWeatherDateString();
+				if(tempWeatherDateString.compareTo(todayString)>=0){
+					weatherDayInfoList.add(tempWeatherDayInfo);
+				}
 			}
 		}
+		
 		updateUI();
 	}
 
 	private void updateUI() {
 
-		locationNameView.setText(defaultCounty.getCountyName());
+		if(isDefaultCountyIdSet){
 			
-		//如果有可以显示的天气数据，就进行显示
-		if(weatherDayInfoList.size()>0){
-			WeatherDayInfo todayWeatherDayInfo = weatherDayInfoList.get(0);
-			todayRealTimeTemperatureView.setText(todayWeatherDayInfo.getRealTimeTemperature());
-			todayTemperatureView.setText(todayWeatherDayInfo.getTemperature());
-			todayWeatherInfoView.setText(todayWeatherDayInfo.getWeatherInfo());
-	
-			Date weatherDate = null;
-			try {
-				weatherDate = DateUtil.dateFormat.parse(todayWeatherDayInfo.getWeatherDateString());
-			} catch (ParseException e) {
-				e.printStackTrace();
+			locationNameView.setText(defaultCounty.getCountyName());
+			
+			//如果有可以显示的天气数据，就进行显示
+			if(weatherDayInfoList.size()>0){
+				WeatherDayInfo todayWeatherDayInfo = weatherDayInfoList.get(0);
+				todayRealTimeTemperatureView.setText(todayWeatherDayInfo.getRealTimeTemperature());
+				todayTemperatureView.setText(todayWeatherDayInfo.getTemperature());
+				todayWeatherInfoView.setText(todayWeatherDayInfo.getWeatherInfo());
+		
+				Date weatherDate = null;
+				try {
+					weatherDate = DateUtil.dateFormat.parse(todayWeatherDayInfo.getWeatherDateString());
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+				String formatWeatherDateString = DateUtil.shortDateFormat.format(weatherDate);
+				
+				todayWeatherDateView.setText(formatWeatherDateString);
+				todayWeekView.setText(todayWeatherDayInfo.getWeek());
+				
+				weatherDayInfoUpdateTimeView.setText(todayWeatherDayInfo.getUpdateTimeString());
+			}else{
+				//如果没有数据，就对界面进行重置
+				todayRealTimeTemperatureView.setText("");
+				todayTemperatureView.setText("");
+				todayWeatherInfoView.setText("");
+				todayWeatherDateView.setText("");
+				todayWeekView.setText("");
+				
+				weatherDayInfoUpdateTimeView.setText("");
+			
 			}
-			String formatWeatherDateString = DateUtil.shortDateFormat.format(weatherDate);
+		}else{
 			
-			todayWeatherDateView.setText(formatWeatherDateString);
-			todayWeekView.setText(todayWeatherDayInfo.getWeek());
+			locationNameView.setText("");
+			//如果没有数据，就对界面进行重置
+			todayRealTimeTemperatureView.setText("");
+			todayTemperatureView.setText("");
+			todayWeatherInfoView.setText("");
+			todayWeatherDateView.setText("");
+			todayWeekView.setText("");
 			
-			weatherDayInfoUpdateTimeView.setText(todayWeatherDayInfo.getUpdateTimeString());
-		}
+			weatherDayInfoUpdateTimeView.setText("");
+		}	
 		
 		Date currentTime = new Date(System.currentTimeMillis());
 		String todayString = DateUtil.fullDateFormat.format(currentTime);
@@ -223,16 +280,15 @@ public class ViewWeatherActivity extends Activity {
 	
 	private void checkIsDefaultCountyIdSet(){
 
-		isDefaultCountyIdSet = 
-				pref.contains(Constant.CONFIG_ITEM_DEFAULT_COUNTY_ID);
+		isDefaultCountyIdSet = LocationService.isDefaultCountyIdSet(pref);
+		
 		if(!isDefaultCountyIdSet){
 			Toast.makeText(this, "未设置城市，请进入-城市管理 里进行设置", Toast.LENGTH_LONG)
 				.show();
 			return;
 		}else{
 
-			int defaultCountyId = 
-				pref.getInt(Constant.CONFIG_ITEM_DEFAULT_COUNTY_ID, -1);
+			int defaultCountyId = LocationService.getDefaultCountyId(pref);
 			defaultCounty = 
 					CoolWeatherDB.getInstance(this).loadCountyById(defaultCountyId);
 		}
@@ -262,7 +318,7 @@ public class ViewWeatherActivity extends Activity {
 			public void onFinish(String response) {
 				Log.i(TAG, "onFinish");
 				weatherDayInfoManager.parseWeatherInfoResponse(ViewWeatherActivity.this
-						,defaultCounty,response);
+						,defaultCounty.getCountyId(),response);
 				
 				Message message = new Message();
 				message.what = MESSAGE_UPDATE_UI;
@@ -289,6 +345,12 @@ public class ViewWeatherActivity extends Activity {
 	@Override
 	public void onBackPressed() {
 		super.onBackPressed();
+	}
+	
+	@Override
+	protected void onRestart() {
+		super.onRestart();
+		Log.i(TAG,"onRestart");
 	}
 
 }

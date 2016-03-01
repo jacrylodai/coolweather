@@ -20,6 +20,14 @@
         android:textSize="12sp"         
         />
     
+    <ImageView 
+        android:id="@+id/weather_picture_image_view"
+        android:layout_width="42dp"
+        android:layout_height="30dp"
+        android:scaleType="fitCenter"
+        android:layout_gravity="center_horizontal"
+        />
+    
     <TextView 
         android:id="@+id/weather_info_view"
         android:layout_width="match_parent"

@@ -9,14 +9,9 @@ import android.content.Context;
 
 public interface WeatherDayInfoManager {
 
-	public void saveWeatherDayInfoList(Context context,
-			List<WeatherDayInfo> weatherDayInfoList);
-
 	public void parseWeatherInfoResponse(
-			Context context, County defaultCounty,String response);
+			Context context, Integer countyId ,String response);
 	
-	public void deleteWeatherDayInfoByCountyId(Context context, Integer countyId);
-
 	public List<WeatherDayInfo> getWeatherDayInfoListByCountyId(
 			Context context, Integer countyId);
 	

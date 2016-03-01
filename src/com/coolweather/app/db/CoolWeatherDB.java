@@ -21,9 +21,12 @@ public class CoolWeatherDB {
 	
 	private CoolWeatherOpenHelper dbHelper;
 	
+	private SQLiteDatabase db;
+	
 	private CoolWeatherDB(Context context){
 		
 		dbHelper = new CoolWeatherOpenHelper(context, DB_NAME, null, DB_VERSION);
+		db = dbHelper.getWritableDatabase();
 	}
 	
 	public synchronized static CoolWeatherDB getInstance(Context context){
@@ -33,14 +36,16 @@ public class CoolWeatherDB {
 		return instance;
 	}	
 	
-	public CoolWeatherOpenHelper getDbHelper() {
-		return dbHelper;
+	public SQLiteDatabase getDB(){
+		return db;
+	}
+	
+	public void closeDB(){
+		db.close();
 	}
 
 	public void saveProvinceList(List<Province> provinceList){
 
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		
 		db.beginTransaction();
 		try{
 			for(int i=0;i<provinceList.size();i++){
@@ -56,12 +61,9 @@ public class CoolWeatherDB {
 		} finally {
 			db.endTransaction();
 		}
-		db.close();
 	}
 	
 	public Province loadProvinceByName(String provinceName){
-
-		SQLiteDatabase db = dbHelper.getReadableDatabase();
 		
 		Province province = null;
 		Cursor cursor = db.rawQuery(
@@ -86,14 +88,11 @@ public class CoolWeatherDB {
 			cursor.close();
 		}
 		
-		db.close();
 		return province;	
 	}
 	
 	public List<Province> getProvinceList(){
 
-		SQLiteDatabase db = dbHelper.getReadableDatabase();
-		
 		List<Province> provinceList = new ArrayList<Province>();
 		Cursor cursor = db.rawQuery(
 				"select * from Province province",null);
@@ -115,14 +114,11 @@ public class CoolWeatherDB {
 			provinceList.add(province);
 		}
 		cursor.close();
-		db.close();
 		return provinceList;		
 	}
 	
 	public void saveCityList(List<City> cityList){
 
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		
 		db.beginTransaction();
 		try{
 			
@@ -141,13 +137,10 @@ public class CoolWeatherDB {
 		} finally{
 			db.endTransaction();
 		}
-		db.close();
 	}
 	
 	public List<City> getCityListByProvinceId(Integer provinceId){
 
-		SQLiteDatabase db = dbHelper.getReadableDatabase();
-		
 		List<City> cityList = new ArrayList<City>();
 		Cursor cursor = db.rawQuery(
 				"select * from City city where city.province_id=?"
@@ -169,14 +162,11 @@ public class CoolWeatherDB {
 			cityList.add(city);
 		}
 		cursor.close();
-		db.close();
 		return cityList;
 	}
 	
 	public void saveCountyList(List<County> countyList){
 
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		
 		db.beginTransaction();
 		try{
 			
@@ -195,13 +185,10 @@ public class CoolWeatherDB {
 		} finally{
 			db.endTransaction();
 		}
-		db.close();
 	}
 	
 	public List<County> getCountyListByCityId(Integer cityId){
 
-		SQLiteDatabase db = dbHelper.getReadableDatabase();
-		
 		List<County> countyList = new ArrayList<County>();
 		Cursor cursor = 
 				db.rawQuery("select * from County county where county.city_id=?"
@@ -223,14 +210,11 @@ public class CoolWeatherDB {
 			countyList.add(county);
 		}
 		cursor.close();
-		db.close();
 		return countyList;
 	}
 	
 	public County loadCountyById(Integer countyId){
 
-		SQLiteDatabase db = dbHelper.getReadableDatabase();
-		
 		County county = null;
 		Cursor cursor = 
 				db.rawQuery("select * from County county where county.county_id=?"
@@ -250,7 +234,6 @@ public class CoolWeatherDB {
 			county.setCityId(tempCityId);
 		}
 		cursor.close();
-		db.close();
 		return county;
 	}
 

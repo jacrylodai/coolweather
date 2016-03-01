@@ -33,31 +33,7 @@ public class WeatherDayInfoManagerImpl implements WeatherDayInfoManager{
 	}
 	
 	@Override
-	public void saveWeatherDayInfoList(Context context,
-			List<WeatherDayInfo> weatherDayInfoList) {
-
-		SQLiteDatabase db = 
-				CoolWeatherDB.getInstance(context).getDbHelper().getWritableDatabase();
-		
-		db.beginTransaction();
-		try{
-			
-			for(int i=0;i<weatherDayInfoList.size();i++){
-				WeatherDayInfo weatherDayInfo = weatherDayInfoList.get(i);
-				weatherDayInfoDao.saveWeatherDayInfo(db, weatherDayInfo);
-			}
-			
-			db.setTransactionSuccessful();
-		} catch (Exception ex){
-			ex.printStackTrace();
-		} finally {
-			db.endTransaction();
-		}
-		db.close();
-	}
-
-	@Override
-	public void parseWeatherInfoResponse(Context context, County defaultCounty,
+	public synchronized void parseWeatherInfoResponse(Context context, Integer countyId,
 			String response) {
 
 		SAXReader reader = new SAXReader();
@@ -74,33 +50,38 @@ public class WeatherDayInfoManagerImpl implements WeatherDayInfoManager{
 		if(!status.equals("success")){
 			return;
 		}
-		deleteWeatherDayInfoByCountyId(context, defaultCounty.getCountyId());
-		List<WeatherDayInfo> weatherDayInfoList =
-				XMLUtil.getWeatherDayInfoListFromXML(document,defaultCounty);
-		saveWeatherDayInfoList(context, weatherDayInfoList);
+		
+		SQLiteDatabase db = CoolWeatherDB.getInstance(context).getDB();
+		db.beginTransaction();
+		try{
+			
+			weatherDayInfoDao.deleteWeatherDayInfoByCountyId(db, countyId);
+			List<WeatherDayInfo> weatherDayInfoList =
+					XMLUtil.getWeatherDayInfoListFromXML(document,countyId);
+			
+			for(int i=0;i<weatherDayInfoList.size();i++){
+				WeatherDayInfo weatherDayInfo = weatherDayInfoList.get(i);
+				weatherDayInfoDao.saveWeatherDayInfo(db, weatherDayInfo);
+			}
+			
+			db.setTransactionSuccessful();
+		} catch (Exception ex){
+			ex.printStackTrace();
+		} finally{
+			db.endTransaction();
+		}
 	}
 	
-	public void deleteWeatherDayInfoByCountyId(Context context, Integer countyId){
-
-		SQLiteDatabase db = 
-				CoolWeatherDB.getInstance(context).getDbHelper().getWritableDatabase();
-		
-		weatherDayInfoDao.deleteWeatherDayInfoByCountyId(db,countyId);
-		
-		db.close();
-	}
-
 	@Override
 	public List<WeatherDayInfo> getWeatherDayInfoListByCountyId(
 			Context context, Integer countyId) {
 
 		SQLiteDatabase db = 
-				CoolWeatherDB.getInstance(context).getDbHelper().getReadableDatabase();
+				CoolWeatherDB.getInstance(context).getDB();
 		
 		List<WeatherDayInfo> weatherDayInfoList = 
 				weatherDayInfoDao.getWeatherDayInfoListByCountyId(db,countyId);
 		
-		db.close();
 		return weatherDayInfoList;
 	}
 

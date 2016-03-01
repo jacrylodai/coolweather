@@ -149,5 +149,27 @@ public class LocationService {
 		editor.putString(Constant.CONFIG_ITEM_COUNTY_ID_LIST, sb.toString());
 		editor.commit();
 	}
+
+	public static void removeDefaultCountyId(SharedPreferences pref) {
+
+		SharedPreferences.Editor editor = pref.edit();
+		editor.remove(Constant.CONFIG_ITEM_DEFAULT_COUNTY_ID);
+		editor.commit();
+		
+	}
+	
+	public static boolean isDefaultCountyIdSet(SharedPreferences pref){
+		
+		return pref.contains(Constant.CONFIG_ITEM_DEFAULT_COUNTY_ID);
+	}
+
+	public static int getDefaultCountyId(SharedPreferences pref) {
+		
+		if(isDefaultCountyIdSet(pref)){
+			return pref.getInt(Constant.CONFIG_ITEM_DEFAULT_COUNTY_ID, -1);
+		}else{
+			throw new RuntimeException("没有设置城市");
+		}
+	}
 	
 }

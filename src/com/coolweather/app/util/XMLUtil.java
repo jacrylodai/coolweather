@@ -33,11 +33,10 @@ public class XMLUtil {
 			"/CityWeatherResponse/results/weather_data/temperature";
 
 	public static List<WeatherDayInfo> getWeatherDayInfoListFromXML(
-			Document document, County defaultCounty) {
+			Document document, Integer countyId) {
 		
 		List<WeatherDayInfo> weatherDayInfoList = 
 				new ArrayList<WeatherDayInfo>();
-		int countyId = defaultCounty.getCountyId();
 		
 		Element dateFirstElt = (Element) document.selectObject("/CityWeatherResponse/date");
 		String dateFirst = dateFirstElt.getStringValue();
@@ -90,7 +89,7 @@ public class XMLUtil {
 				weatherDayInfo.setWeek(week);
 				
 				String tempRealTimeTemp = infoPartArray[2];
-				int index = tempRealTimeTemp.indexOf("£º");
+				int index = tempRealTimeTemp.indexOf('£º');
 				String realTimeTemp = 
 						tempRealTimeTemp.substring(index+1, tempRealTimeTemp.length()-1);
 				weatherDayInfo.setRealTimeTemperature(realTimeTemp);

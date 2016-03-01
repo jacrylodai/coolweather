@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -33,6 +34,8 @@ public class SetLocationActivity extends Activity {
 	private static final int LEVEL_COUNTY = 3;
 	
 	private static final int MESSAGE_UPDATE_UI = 11;
+	
+	private Button backButton;
 	
 	private TextView mainLocationView;
 	
@@ -80,6 +83,7 @@ public class SetLocationActivity extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.set_location_layout);
 		
+		backButton = (Button)findViewById(R.id.back_button);
 		mainLocationView = (TextView)findViewById(R.id.main_location_view);
 		subLocationListView = (ListView)findViewById(R.id.sub_location_list_view);
 
@@ -87,6 +91,16 @@ public class SetLocationActivity extends Activity {
 				new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1
 						, subLocationList);
 		subLocationListView.setAdapter(listViewAdapter);
+		
+		backButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+
+				SetLocationActivity.this.onBackPressed();
+			}
+		});
+		
 		subLocationListView.setOnItemClickListener(
 				new AdapterView.OnItemClickListener() {
 
@@ -145,7 +159,7 @@ public class SetLocationActivity extends Activity {
 			if(cityList.size() == 0){
 				downloadCityList();
 			}else{
-				mainLocation = "省份名称："+selectedProvince.getProvinceName();
+				mainLocation = "省-"+selectedProvince.getProvinceName();
 				subLocationList.clear();
 				LocationService.putCityNameInList(cityList, subLocationList);
 				refreshUI();
@@ -158,7 +172,7 @@ public class SetLocationActivity extends Activity {
 			if(countyList.size() == 0){
 				downloadCountyList();
 			}else{
-				mainLocation = "市名称："+selectedCity.getCityName();
+				mainLocation = "市-"+selectedCity.getCityName();
 				subLocationList.clear();
 				LocationService.putCountyNameInList(countyList, subLocationList);
 				refreshUI();

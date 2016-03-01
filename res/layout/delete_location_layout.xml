@@ -20,7 +20,6 @@
             />
         
         <TextView 
-            android:id="@+id/main_location_view"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
@@ -28,18 +27,39 @@
             android:paddingRight="60dp"
             android:gravity="center"
             android:textSize="24sp"
+            android:text="删除城市"
             />        
-                
+        
     </LinearLayout>
     
-    
-    <ListView 
-        android:id="@+id/sub_location_list_view"
+    <LinearLayout 
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         >
         
-    </ListView>
+        <ListView 
+            android:id="@+id/location_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+            
+        </ListView>
+                
+    </LinearLayout>
+    
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+        
+        <Button 
+            android:id="@+id/delete_county_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="删除"
+            />
+        
+    </LinearLayout>
 
 </LinearLayout>

@@ -28,15 +28,17 @@ public class HttpUtil {
 					connection.setConnectTimeout(10000);
 					
 					connection.setDoInput(true);
+					connection.connect();
 					
 					InputStream in = connection.getInputStream();
 					BufferedReader reader = 
-							new BufferedReader(new InputStreamReader(in));
+							new BufferedReader(new InputStreamReader(in,"UTF-8"));
 					String line = null;
 					StringBuffer sb = new StringBuffer();
 					
 					while( (line = reader.readLine()) != null){
-						sb.append(line);						
+						sb.append(line);
+			            sb.append("\r\n");						
 					}
 					String response = sb.toString();
 					

@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -24,19 +25,21 @@ import android.widget.Toast;
 
 public class ManageLocationActivity extends Activity {
 	
-	private static final int REQUEST_ADD_LOCATION = 11;
+	private static final int REQUEST_ADD_LOCATION = 1;
+	
+	private static final int REQUEST_DELETE_LOCATION = 2;
 	
 	private SharedPreferences pref;
 	
 	private Button backButton;
 	
-	private Button addLocationButton;
-	
 	private ListView locationListView;
 	
 	private ArrayAdapter<String> listViewAdapter;
 	
-	private Button setDefaultCountyButton;
+	private Button addLocationButton;
+	
+	private Button changeDeleteCountyButton;
 	
 	private List<String> countyNameList = new ArrayList<String>();
 	
@@ -55,20 +58,19 @@ public class ManageLocationActivity extends Activity {
 		setContentView(R.layout.manage_location_layout);
 		
 		backButton = (Button)findViewById(R.id.back_button);
-		addLocationButton = (Button)findViewById(R.id.add_location_button);
 		locationListView = 
 				(ListView)findViewById(R.id.location_list_view);
-		
-		setDefaultCountyButton = 
-				(Button) findViewById(R.id.set_default_county_button);
+
+		addLocationButton = (Button)findViewById(R.id.add_location_button);
+		changeDeleteCountyButton = 
+				(Button) findViewById(R.id.change_delete_county_button);
 		
 		pref = getSharedPreferences(Constant.CONFIG_LOCATION_FILE, Context.MODE_PRIVATE);
 		
 		listViewAdapter = new ArrayAdapter<String>(this
-				, android.R.layout.simple_list_item_single_choice
+				, android.R.layout.simple_list_item_1
 				, countyNameList);
 		locationListView.setAdapter(listViewAdapter);
-		locationListView.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
 				
 		addLocationButton.setOnClickListener(new View.OnClickListener() {
 			
@@ -86,26 +88,39 @@ public class ManageLocationActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 
+				setResult(Activity.RESULT_OK);
 				finish();
 			}
 		});
 		
-		setDefaultCountyButton.setOnClickListener(new View.OnClickListener() {
+		locationListView.setOnItemClickListener(
+				new AdapterView.OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+
+				County county = countyList.get(position);
+				LocationService.setDefaultCountyId(pref, county.getCountyId());
+				
+				ManageLocationActivity.this.setResult(Activity.RESULT_OK);
+				ManageLocationActivity.this.finish();
+			}
+		});
+		
+		changeDeleteCountyButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
 
-				int position = locationListView.getCheckedItemPosition();
-				if(position != AbsListView.INVALID_POSITION){
-					int defaultCountyId = countyIdList.get(position);
-					LocationService.setDefaultCountyId(pref, defaultCountyId);
-					
-					checkIsDefaultCountyIdSet();
-					loadLocationData();
-				}else{
+				if(countyIdList.size() == 0){
 					Toast.makeText(ManageLocationActivity.this
-							, "你没有选择城市", Toast.LENGTH_LONG).show();
+							, "没有任何数据可以删除", Toast.LENGTH_SHORT).show();
+					return;
 				}
+				Intent intent = new Intent(ManageLocationActivity.this
+						,DeleteLocationActivity.class);
+				startActivityForResult(intent, REQUEST_DELETE_LOCATION);
 			}
 		});
 
@@ -115,12 +130,11 @@ public class ManageLocationActivity extends Activity {
 
 	private void checkIsDefaultCountyIdSet(){
 
-		isDefaultCountyIdSet = 
-				pref.contains(Constant.CONFIG_ITEM_DEFAULT_COUNTY_ID);
+		isDefaultCountyIdSet = LocationService.isDefaultCountyIdSet(pref);
+		
 		if(isDefaultCountyIdSet){
 
-			int defaultCountyId = 
-				pref.getInt(Constant.CONFIG_ITEM_DEFAULT_COUNTY_ID, -1);
+			int defaultCountyId = LocationService.getDefaultCountyId(pref);
 			defaultCounty = 
 					CoolWeatherDB.getInstance(this).loadCountyById(defaultCountyId);
 		}
@@ -129,19 +143,22 @@ public class ManageLocationActivity extends Activity {
 	private void loadLocationData() {
 
 		countyIdList = LocationService.getCountyIdListFromPref(pref);
-		countyList = 
-				CoolWeatherDB.getInstance(this).getCountyListByCountyIdList(countyIdList);
 		countyNameList.clear();
-
-		for(int i=0;i<countyList.size();i++){
-			County county = countyList.get(i);
-			if(defaultCounty != null && 
-					county.getCountyId() == defaultCounty.getCountyId()){
-				countyNameList.add(county.getCountyName()+" —— 默认城市");
-			}else{
-				countyNameList.add(county.getCountyName());				
-			}
-		}		
+		
+		if(countyIdList.size()>0){
+			countyList = 
+					CoolWeatherDB.getInstance(this).getCountyListByCountyIdList(countyIdList);
+			
+			for(int i=0;i<countyList.size();i++){
+				County county = countyList.get(i);
+				if(defaultCounty != null && 
+						county.getCountyId() == defaultCounty.getCountyId()){
+					countyNameList.add(county.getCountyName()+" —— 默认城市");
+				}else{
+					countyNameList.add(county.getCountyName());				
+				}
+			}		
+		}
 		
 		refreshUI();
 	}
@@ -162,6 +179,10 @@ public class ManageLocationActivity extends Activity {
 			
 			if(resultCode == Activity.RESULT_OK){
 				Integer selectedCountyId = data.getIntExtra("selectedCountyId", -1);
+				if(countyIdList.contains(selectedCountyId)){
+					return;
+				}
+				
 				countyIdList.add(selectedCountyId);
 				
 				if(countyIdList.size() == 1){
@@ -170,6 +191,15 @@ public class ManageLocationActivity extends Activity {
 				LocationService.saveCountyIdListInPref(pref, countyIdList);
 				
 				checkIsDefaultCountyIdSet();
+				loadLocationData();
+			}
+			break;
+			
+		case REQUEST_DELETE_LOCATION:
+
+			if(resultCode == Activity.RESULT_OK){
+				
+				checkIsDefaultCountyIdSet();				
 				loadLocationData();
 			}
 			break;
@@ -187,6 +217,7 @@ public class ManageLocationActivity extends Activity {
 	@Override
 	public void onBackPressed() {
 		super.onBackPressed();
+		setResult(Activity.RESULT_OK);
 	}
 
 }
