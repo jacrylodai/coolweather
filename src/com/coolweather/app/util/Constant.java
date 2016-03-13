@@ -19,4 +19,6 @@ public class Constant {
 	
 	public static final String BAIDU_APP_KEY = "LEVHpiyvs8KQchPfcYBSFcFh";
 	
+	public static final String DB_SYNCH_OBJECT = "SynchObject";
+	
 }

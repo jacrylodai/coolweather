@@ -20,6 +20,7 @@ import com.coolweather.app.util.Constant;
 import com.coolweather.app.util.DateUtil;
 import com.coolweather.app.util.HttpCallbackListener;
 import com.coolweather.app.util.HttpUtil;
+import com.coolweather.app.util.NetworkUtil;
 
 import android.app.Activity;
 import android.content.Context;
@@ -85,8 +86,8 @@ public class ViewWeatherActivity extends Activity {
 			
 			case MESSAGE_CONNECT_EXCEPTION:
 				Toast.makeText(ViewWeatherActivity.this
-						, "更新天气数据失败，检查是否开启手机网络"
-						, Toast.LENGTH_LONG).show();
+						, R.string.toast_connection_error
+						, Toast.LENGTH_SHORT).show();
 				break;
 			default:
 				break;
@@ -283,7 +284,7 @@ public class ViewWeatherActivity extends Activity {
 		isDefaultCountyIdSet = LocationService.isDefaultCountyIdSet(pref);
 		
 		if(!isDefaultCountyIdSet){
-			Toast.makeText(this, "未设置城市，请进入-城市管理 里进行设置", Toast.LENGTH_LONG)
+			Toast.makeText(this, R.string.toast_no_city_is_set, Toast.LENGTH_LONG)
 				.show();
 			return;
 		}else{
@@ -298,6 +299,14 @@ public class ViewWeatherActivity extends Activity {
 	private void downloadCountyWeatherInfo() {
 
 		if(!isDefaultCountyIdSet){
+			return;
+		}
+		
+		if(!NetworkUtil.isNetworkAvailable(this)){
+
+			Toast.makeText(ViewWeatherActivity.this
+					, R.string.toast_no_network_connection
+					, Toast.LENGTH_SHORT).show();
 			return;
 		}
 				

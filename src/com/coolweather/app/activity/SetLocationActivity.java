@@ -11,12 +11,16 @@ import com.coolweather.app.model.County;
 import com.coolweather.app.model.Province;
 import com.coolweather.app.util.HttpCallbackListener;
 import com.coolweather.app.util.HttpUtil;
+import com.coolweather.app.util.NetworkUtil;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -24,8 +28,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class SetLocationActivity extends Activity {
+	
+	private static final String TAG = "SetLocationActivity";
 	
 	private static final int LEVEL_PROVINCE = 1;
 	
@@ -33,7 +40,9 @@ public class SetLocationActivity extends Activity {
 	
 	private static final int LEVEL_COUNTY = 3;
 	
-	private static final int MESSAGE_UPDATE_UI = 11;
+	private static final int MESSAGE_UPDATE_UI = 1;
+	
+	private static final int MESSAGE_CONNECT_EXCEPTION = 2;
 	
 	private Button backButton;
 	
@@ -61,6 +70,8 @@ public class SetLocationActivity extends Activity {
 	
 	private County selectedCounty;
 	
+	private ProgressDialog dialog;
+	
 	private Handler handler = new Handler(){
 
 		@Override
@@ -70,6 +81,18 @@ public class SetLocationActivity extends Activity {
 			case MESSAGE_UPDATE_UI:
 				loadLocationData();
 				break;
+				
+			case MESSAGE_CONNECT_EXCEPTION:
+				if(currentLevel>LEVEL_PROVINCE){
+					currentLevel --;
+					loadLocationData();
+				}else{
+					loadEmptyData();
+				}
+				Toast.makeText(SetLocationActivity.this, R.string.toast_connection_error
+						, Toast.LENGTH_SHORT).show();
+				break;
+				
 			default:
 				break;
 			}
@@ -86,6 +109,11 @@ public class SetLocationActivity extends Activity {
 		backButton = (Button)findViewById(R.id.back_button);
 		mainLocationView = (TextView)findViewById(R.id.main_location_view);
 		subLocationListView = (ListView)findViewById(R.id.sub_location_list_view);
+		
+		dialog = new ProgressDialog(SetLocationActivity.this);
+		dialog.setTitle(R.string.dialog_loading_city_data);
+		dialog.setMessage(getString(R.string.dialog_is_loading));
+		dialog.setCancelable(false);
 
 		listViewAdapter = 
 				new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1
@@ -108,6 +136,8 @@ public class SetLocationActivity extends Activity {
 					public void onItemClick(AdapterView<?> parent, View view,
 							int position, long id) {
 
+						dialog.show();
+						
 						switch(currentLevel){
 						case LEVEL_PROVINCE:							
 							selectedProvince = provinceList.get(position);
@@ -132,12 +162,34 @@ public class SetLocationActivity extends Activity {
 					}
 		});
 		
+		dialog.show();
+		
 		currentLevel = LEVEL_PROVINCE;
 		
 		loadLocationData();
 	}
+	
+	private void loadEmptyData(){
+		
+		subLocationList.clear();
+
+		mainLocationView.setText("");
+		listViewAdapter.notifyDataSetChanged();
+		subLocationListView.setSelection(0);
+		
+		dialog.dismiss();
+	}
 
 	private void loadLocationData() {
+		
+		if(!NetworkUtil.isNetworkAvailable(this)){
+
+			Toast.makeText(this
+					, R.string.toast_no_network_connection
+					, Toast.LENGTH_SHORT).show();
+			loadEmptyData();
+			return;
+		}
 		
 		switch(currentLevel){
 		case LEVEL_PROVINCE:
@@ -146,7 +198,7 @@ public class SetLocationActivity extends Activity {
 			if(provinceList.size() == 0){			
 				downloadProvinceList();
 			}else{			
-				mainLocation = "全国";
+				mainLocation = getString(R.string.view_country);
 				subLocationList.clear();
 				LocationService.putProvinceNameInList(provinceList,subLocationList);
 				refreshUI();
@@ -159,7 +211,8 @@ public class SetLocationActivity extends Activity {
 			if(cityList.size() == 0){
 				downloadCityList();
 			}else{
-				mainLocation = "省-"+selectedProvince.getProvinceName();
+				mainLocation = getString(R.string.view_province)
+						+"-"+selectedProvince.getProvinceName();
 				subLocationList.clear();
 				LocationService.putCityNameInList(cityList, subLocationList);
 				refreshUI();
@@ -172,7 +225,8 @@ public class SetLocationActivity extends Activity {
 			if(countyList.size() == 0){
 				downloadCountyList();
 			}else{
-				mainLocation = "市-"+selectedCity.getCityName();
+				mainLocation = getString(R.string.view_county)
+						+"-"+selectedCity.getCityName();
 				subLocationList.clear();
 				LocationService.putCountyNameInList(countyList, subLocationList);
 				refreshUI();
@@ -185,16 +239,19 @@ public class SetLocationActivity extends Activity {
 		mainLocationView.setText(mainLocation);
 		listViewAdapter.notifyDataSetChanged();
 		subLocationListView.setSelection(0);
+		
+		dialog.dismiss();
 	}
 
 	private void downloadProvinceList(){
-
+		
 		HttpUtil.sendHttpRequest(LocationService.URL_PROVINCE
 				, new HttpCallbackListener() {
 			
 			@Override
 			public void onFinish(String response) {
 
+				Log.i(TAG,"onFinish");
 				List<Province> tempProvinceList = 
 						LocationService.parseResponseToProvinceList(response);
 				CoolWeatherDB.getInstance(SetLocationActivity.this)
@@ -206,13 +263,23 @@ public class SetLocationActivity extends Activity {
 			}
 			@Override
 			public void onError(Exception ex) {
-				
+
+				Log.i(TAG, "onError");
+				handler.sendEmptyMessage(MESSAGE_CONNECT_EXCEPTION);
 			}
 		});
 	}
 
 	private void downloadCityList(){
 
+		if(!NetworkUtil.isNetworkAvailable(this)){
+
+			Toast.makeText(this
+					, R.string.toast_no_network_connection
+					, Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
 		String webUrl = 
 				LocationService.URL_LOCATION_PREFIX 
 				+ selectedProvince.getProvinceCode() 
@@ -224,6 +291,7 @@ public class SetLocationActivity extends Activity {
 			@Override
 			public void onFinish(String response) {
 
+				Log.i(TAG,"onFinish");
 				List<City> tempCityList = 
 						LocationService.parseResponseToCityList(response);
 				
@@ -241,13 +309,23 @@ public class SetLocationActivity extends Activity {
 			}
 			@Override
 			public void onError(Exception ex) {
-				
+
+				Log.i(TAG, "onError");
+				handler.sendEmptyMessage(MESSAGE_CONNECT_EXCEPTION);
 			}
 		});
 	}	
 
 	private void downloadCountyList(){
 
+		if(!NetworkUtil.isNetworkAvailable(this)){
+
+			Toast.makeText(this
+					, R.string.toast_no_network_connection
+					, Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
 		String webUrl = 
 				LocationService.URL_LOCATION_PREFIX 
 				+ selectedCity.getCityCode()
@@ -259,6 +337,7 @@ public class SetLocationActivity extends Activity {
 			@Override
 			public void onFinish(String response) {
 
+				Log.i(TAG, "onFinish");
 				List<County> tempCountyList =  LocationService.parseResponseToCountyList(
 						response);
 				
@@ -270,13 +349,13 @@ public class SetLocationActivity extends Activity {
 				
 				CoolWeatherDB.getInstance(SetLocationActivity.this).saveCountyList(
 						tempCountyList);
-				Message message = new Message();
-				message.what = MESSAGE_UPDATE_UI;
-				handler.sendMessage(message);
+				handler.sendEmptyMessage(MESSAGE_UPDATE_UI);
 			}
 			@Override
 			public void onError(Exception ex) {
 				
+				Log.i(TAG, "onError");
+				handler.sendEmptyMessage(MESSAGE_CONNECT_EXCEPTION);
 			}
 		});
 	}	

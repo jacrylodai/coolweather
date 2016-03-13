@@ -6,6 +6,7 @@ import java.util.List;
 import com.coolweather.app.model.City;
 import com.coolweather.app.model.County;
 import com.coolweather.app.model.Province;
+import com.coolweather.app.util.Constant;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -46,20 +47,24 @@ public class CoolWeatherDB {
 
 	public void saveProvinceList(List<Province> provinceList){
 
-		db.beginTransaction();
-		try{
-			for(int i=0;i<provinceList.size();i++){
-				Province province = provinceList.get(i);
-				db.execSQL(
-						"insert into Province (province_name,province_code) values (?,?)"
-						, new Object[]{province.getProvinceName(),province.getProvinceCode()}
-						);
+
+		synchronized(Constant.DB_SYNCH_OBJECT){
+			
+			db.beginTransaction();
+			try{
+				for(int i=0;i<provinceList.size();i++){
+					Province province = provinceList.get(i);
+					db.execSQL(
+							"insert into Province (province_name,province_code) values (?,?)"
+							, new Object[]{province.getProvinceName(),province.getProvinceCode()}
+							);
+				}
+				db.setTransactionSuccessful();
+			} catch(Exception ex){
+				ex.printStackTrace();
+			} finally {
+				db.endTransaction();
 			}
-			db.setTransactionSuccessful();
-		} catch(Exception ex){
-			ex.printStackTrace();
-		} finally {
-			db.endTransaction();
 		}
 	}
 	
@@ -119,23 +124,26 @@ public class CoolWeatherDB {
 	
 	public void saveCityList(List<City> cityList){
 
-		db.beginTransaction();
-		try{
-			
-			for(int i=0;i<cityList.size();i++){
-				City city = cityList.get(i);
-				db.execSQL(
-						"insert into City (city_name,city_code,province_id) values (?,?,?)"
-						,new Object[]{city.getCityName(),city.getCityCode()
-								,city.getProvinceId()} 
-						);
+		synchronized(Constant.DB_SYNCH_OBJECT){
+				
+			db.beginTransaction();
+			try{
+				
+				for(int i=0;i<cityList.size();i++){
+					City city = cityList.get(i);
+					db.execSQL(
+							"insert into City (city_name,city_code,province_id) values (?,?,?)"
+							,new Object[]{city.getCityName(),city.getCityCode()
+									,city.getProvinceId()} 
+							);
+				}
+				
+				db.setTransactionSuccessful();
+			} catch (Exception ex){
+				ex.printStackTrace();
+			} finally{
+				db.endTransaction();
 			}
-			
-			db.setTransactionSuccessful();
-		} catch (Exception ex){
-			ex.printStackTrace();
-		} finally{
-			db.endTransaction();
 		}
 	}
 	
@@ -167,23 +175,26 @@ public class CoolWeatherDB {
 	
 	public void saveCountyList(List<County> countyList){
 
-		db.beginTransaction();
-		try{
-			
-			for(int i=0;i<countyList.size();i++){
-				County county = countyList.get(i);
-				db.execSQL(
-						"insert into County (county_name,county_code,city_id) values (?,?,?)"
-						,new Object[]{county.getCountyName(),county.getCountyCode()
-								,county.getCityId()} 
-						);
+		synchronized(Constant.DB_SYNCH_OBJECT){
+				
+			db.beginTransaction();
+			try{
+				
+				for(int i=0;i<countyList.size();i++){
+					County county = countyList.get(i);
+					db.execSQL(
+							"insert into County (county_name,county_code,city_id) values (?,?,?)"
+							,new Object[]{county.getCountyName(),county.getCountyCode()
+									,county.getCityId()} 
+							);
+				}
+				
+				db.setTransactionSuccessful();
+			} catch (Exception ex){
+				ex.printStackTrace();
+			} finally{
+				db.endTransaction();
 			}
-			
-			db.setTransactionSuccessful();
-		} catch (Exception ex){
-			ex.printStackTrace();
-		} finally{
-			db.endTransaction();
 		}
 	}
 	

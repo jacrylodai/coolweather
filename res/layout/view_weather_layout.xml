@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:text="刷新"
+            android:text="@string/button_refresh"
             />
         
         <TextView 
@@ -34,7 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:text="城市管理"
+            android:text="@string/button_manage_city"
             />
         
     </LinearLayout>
@@ -107,14 +107,14 @@
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:textSize="12sp"
-	            android:text="数据来源：百度网"
+	            android:text="@string/view_data_source"
 	            />
             
             <TextView 
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:textSize="12sp"
-	            android:text="更新时间："
+	            android:text="@string/view_update_time"
 	            />
             
             <TextView 
@@ -128,7 +128,7 @@
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:textSize="14sp"
-	            android:text="今天是："
+	            android:text="@string/view_today_string"
 	            />
             
             <TextView 

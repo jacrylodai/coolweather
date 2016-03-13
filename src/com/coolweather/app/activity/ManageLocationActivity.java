@@ -115,7 +115,7 @@ public class ManageLocationActivity extends Activity {
 
 				if(countyIdList.size() == 0){
 					Toast.makeText(ManageLocationActivity.this
-							, "没有任何数据可以删除", Toast.LENGTH_SHORT).show();
+							, R.string.toast_empty_city, Toast.LENGTH_SHORT).show();
 					return;
 				}
 				Intent intent = new Intent(ManageLocationActivity.this

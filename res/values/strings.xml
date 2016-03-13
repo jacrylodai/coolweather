@@ -1,8 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">酷天气</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">CoolWeather</string>
     <string name="action_settings">Settings</string>
 
+    <!-- Activity string -->
+    <string name="button_refresh">Refresh</string>
+    <string name="button_manage_city">Manage City</string>
+    <string name="button_back">Back</string>
+    <string name="button_add">Add</string>
+    <string name="button_delete">Delete</string>
+    
+    <string name="view_data_source">Data source:Baidu</string>
+    <string name="view_update_time">Update Time</string>
+    <string name="view_today_string">Today</string>
+    
+    <string name="view_manage_city">Manage City</string>
+    
+    <string name="view_country">China</string>
+    <string name="view_province">Province</string>
+    <string name="view_city">City</string>
+    <string name="view_county">County</string>
+    
+    <!-- Toast string -->
+    <string name="toast_no_network_connection">Your cellphone did not establish a network connection,Please open your network</string>
+    <string name="toast_no_city_is_set">Your did not add a city,Please go to -Manage City- to add your city</string>
+    <string name="toast_connection_error">Network connection failed,Please open your network</string>
+    <string name="toast_empty_city">Your city list is empty,There is no city to delete</string>
+    
+    <string name="dialog_loading_city_data">Loading City Data</string>
+    <string name="dialog_is_loading">Loading-----</string>
+       
 </resources>

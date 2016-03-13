@@ -27,9 +27,9 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
 
-public class WeatherAutoUpdateService extends Service{
+public class WeatherNetworkUpdateService extends Service{
 	
-	private static final String TAG = "WeatherAutoUpdateService";
+	private static final String TAG = "WeatherUpdateService";
 	
 	private WeatherDayInfoManager weatherDayInfoManager;
 	
@@ -65,20 +65,13 @@ public class WeatherAutoUpdateService extends Service{
 			}
 		}
 		
-		AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-		long waitTime = 4*60*60*1000;
-		long triggerTime = SystemClock.elapsedRealtime() + waitTime;
-		
-		Intent updateReceiverIntent = new Intent(this,WeatherAutoUpdateReceiver.class);
-		PendingIntent pi = PendingIntent.getBroadcast(this, 0, updateReceiverIntent, 0);
-		alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerTime, pi);
-		
 		return super.onStartCommand(intent, flags, startId);
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		Log.i(TAG, "onDestroy");
 	}
 
 }

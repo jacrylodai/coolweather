@@ -16,24 +16,28 @@ import com.coolweather.app.dao.WeatherDayInfoDaoImpl;
 import com.coolweather.app.db.CoolWeatherDB;
 import com.coolweather.app.model.County;
 import com.coolweather.app.model.WeatherDayInfo;
+import com.coolweather.app.util.Constant;
 import com.coolweather.app.util.XMLUtil;
 
 public class WeatherDayInfoManagerImpl implements WeatherDayInfoManager{
 
 	private WeatherDayInfoDao weatherDayInfoDao = new WeatherDayInfoDaoImpl();
 	
-	private static WeatherDayInfoManagerImpl instance = new WeatherDayInfoManagerImpl();
+	private static WeatherDayInfoManagerImpl instance;
 	
 	private WeatherDayInfoManagerImpl(){
 		
 	}
 	
-	public static WeatherDayInfoManagerImpl getInstance(){
+	public synchronized static WeatherDayInfoManagerImpl getInstance(){
+		if(instance == null){
+			instance = new WeatherDayInfoManagerImpl();
+		}
 		return instance;
 	}
 	
 	@Override
-	public synchronized void parseWeatherInfoResponse(Context context, Integer countyId,
+	public void parseWeatherInfoResponse(Context context, Integer countyId,
 			String response) {
 
 		SAXReader reader = new SAXReader();
@@ -52,23 +56,27 @@ public class WeatherDayInfoManagerImpl implements WeatherDayInfoManager{
 		}
 		
 		SQLiteDatabase db = CoolWeatherDB.getInstance(context).getDB();
-		db.beginTransaction();
-		try{
+		
+		synchronized(Constant.DB_SYNCH_OBJECT){
 			
-			weatherDayInfoDao.deleteWeatherDayInfoByCountyId(db, countyId);
-			List<WeatherDayInfo> weatherDayInfoList =
-					XMLUtil.getWeatherDayInfoListFromXML(document,countyId);
-			
-			for(int i=0;i<weatherDayInfoList.size();i++){
-				WeatherDayInfo weatherDayInfo = weatherDayInfoList.get(i);
-				weatherDayInfoDao.saveWeatherDayInfo(db, weatherDayInfo);
+			db.beginTransaction();
+			try{
+				
+				weatherDayInfoDao.deleteWeatherDayInfoByCountyId(db, countyId);
+				List<WeatherDayInfo> weatherDayInfoList =
+						XMLUtil.getWeatherDayInfoListFromXML(document,countyId);
+				
+				for(int i=0;i<weatherDayInfoList.size();i++){
+					WeatherDayInfo weatherDayInfo = weatherDayInfoList.get(i);
+					weatherDayInfoDao.saveWeatherDayInfo(db, weatherDayInfo);
+				}
+				
+				db.setTransactionSuccessful();
+			} catch (Exception ex){
+				ex.printStackTrace();
+			} finally{
+				db.endTransaction();
 			}
-			
-			db.setTransactionSuccessful();
-		} catch (Exception ex){
-			ex.printStackTrace();
-		} finally{
-			db.endTransaction();
 		}
 	}
 	

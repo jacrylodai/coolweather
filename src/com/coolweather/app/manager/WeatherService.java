@@ -1,11 +1,22 @@
 package com.coolweather.app.manager;
 
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.content.Context;
+import android.util.Log;
+
 import com.coolweather.app.R;
+import com.coolweather.app.model.County;
+import com.coolweather.app.service.WeatherAutoUpdateService;
+import com.coolweather.app.util.Constant;
+import com.coolweather.app.util.HttpCallbackListener;
+import com.coolweather.app.util.HttpUtil;
 
 public class WeatherService {
+	
+	private static final String TAG = "WeatherService";
 
 	public static final String URL_BAIDU_WEATHER_API = 
 			"http://api.map.baidu.com/telematics/v3/weather";
@@ -47,6 +58,38 @@ public class WeatherService {
 		dayPictureMap.put("zhongxuezhuandaxue",R.drawable.zhongxuezhuandaxue);
 		dayPictureMap.put("zhongyu",R.drawable.zhongyu);
 		dayPictureMap.put("zhongyuzhuandayu",R.drawable.zhongyuzhuandayu);
+	}
+	
+	public static void downloadCountyWeatherInfo(
+			final WeatherDayInfoManager weatherDayInfoManager
+			,final Context context
+			,final County county) {
+	
+		StringBuffer sb = new StringBuffer();
+		sb.append(WeatherService.URL_BAIDU_WEATHER_API);
+		sb.append('?');
+		sb.append("location="+
+				URLEncoder.encode(county.getCountyName()));
+		sb.append("&output=xml");
+		sb.append("&ak="+Constant.BAIDU_APP_KEY);		
+		sb.append("&mcode="+Constant.APP_MCODE);
+		
+		String webUrl = sb.toString();
+		Log.i(TAG, webUrl);
+		HttpUtil.sendHttpRequest(webUrl, new HttpCallbackListener() {
+			
+			@Override
+			public void onFinish(String response) {
+				Log.i(TAG, "onFinish");
+				weatherDayInfoManager.parseWeatherInfoResponse(
+						context,county.getCountyId(),response);				
+			}
+			
+			@Override
+			public void onError(Exception ex) {
+				Log.i(TAG, "onError");
+			}
+		});
 	}
 	
 }

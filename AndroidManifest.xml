@@ -8,6 +8,7 @@
         android:minSdkVersion="14"
         android:targetSdkVersion="21" />
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
         android:allowBackup="true"
@@ -40,9 +41,21 @@
             android:name="com.coolweather.app.service.WeatherAutoUpdateService"
             ></service>
         
+        <service 
+            android:name="com.coolweather.app.service.WeatherNetworkUpdateService"
+            ></service>
+        
         <receiver 
             android:name="com.coolweather.app.receiver.WeatherAutoUpdateReceiver"
             ></receiver>
+        
+        <receiver 
+            android:name="com.coolweather.app.receiver.WeatherNetworkUpdateReceiver"
+            >
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
